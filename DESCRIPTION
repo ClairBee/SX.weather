@@ -1,0 +1,15 @@
+Package: SX.weather
+Title: Functions to replicate & expand Sichun Xie MSc report on multi-model
+    ensembkes in weather forecasting
+Version: 0.0.0.9000
+Authors@R: person("Clair", "Barnes", email = "clair.barnes.16@ucl.ac.uk", role = c("aut", "cre"))
+Description: Replicate & expand Sichun Xie MSc report on multi-model ensembkes
+    in weather forecasting
+Depends:
+    R (>= 3.3.0),
+    fields,
+    abind
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 5.0.1
