@@ -35,13 +35,30 @@ load.all <- function() {
 #' 
 ensemble.spread <- function(ens) {
     
-    d <- dim(ens)
-    # check against array calculation
-    daily.var <- array(apply(array(ens, dim = c(d[1], d[2] * d[3], d[4], d[5])), 1:3, var),
-                       dim = d[1:4], 
-                       dimnames = list(dimnames(ens)[[1]], NULL, dimnames(ens)[[3]], NULL))
+    daily.var <- array(dim = dim(ens[, 16:105, , , 1]), dimnames = dimnames(ens[, 16:105, , , 1]))
+    
+    invisible(sapply(0:14, function(lt) {
+        daily.var[,,,toString(lt)] <<- apply(ens[,(16:105)-lt,,toString(lt),], 1:3, var)
+    }))
     
     sqrt(apply(daily.var, c(1, 4), mean))
+}
+
+
+#' Adjust forecast by leadtime
+#' 
+#' Takes forecasts at multiple leadtimes and adjusts them so that forecasts for the same day are aligned (eg. look ahead 1 day for t-1, look ahead 2 days for t-2, and so on); rather than aligning records by date on which forecast was produced.
+#' @param fc Forecast array
+#' @return Adjusted forecast array
+#' @export
+#' 
+offset.forecast <- function(fc) {
+    os <- array(dim = dim(fc[, 16:105, , , ]), dimnames = dimnames(fc[, 16:105, , , ]))
+    
+    invisible(sapply(0:14, function(lt) {
+        os[, , , toString(lt), ] <<- fc[, (16:105) - lt, , toString(lt), ]
+    }))
+    os
 }
 
 
@@ -77,5 +94,39 @@ forecast.rmse <- function(fc, actual = obs) {
     err <- forecast.errors(fc, actual = actual)
     sqrt(apply(err^2, c(1, 4, 5), mean))
 }
+
+
+#' Create superensemble
+#' 
+#' Join ensemble forecasts into superensemble, ordered with control forecasts first, followed by perturbations.
+#' @param data.list List of model names to be included in superensemble
+#' @return Single array containing combined data, with attribute \code{m} a numeric vector labelling source ensemble
+#' @export
+#' 
+superensemble <- function(data.list = list(ecmwf, ncep, ukmo)) {
+    
+    ctrl <- abind(lapply(data.list, "[",,,,,1), along = 5)
+    pert <- abind(lapply(data.list, "[",,,,,-1), along = 5)
+    
+    super <- abind(ctrl, pert, along = 5)
+    attr(super, "m") <- c(rep(0, length(data.list)), 
+                         unlist(sapply(1:length(data.list), 
+                                       function(n) rep(n, dim(data.list[[n]])[5]-1))))
+    return(super)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -4,7 +4,7 @@
 \alias{plot.forecast.errors}
 \title{Plot forecast errors}
 \usage{
-plot.forecast.errors(model)
+\method{plot}{forecast.errors}(model)
 }
 \arguments{
 \item{model}{Name of dataset to use (use \code{data{package = "SX.weather"}} to list available options)}

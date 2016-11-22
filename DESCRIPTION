@@ -8,7 +8,8 @@ Description: Replicate & expand Sichun Xie MSc report on multi-model ensembkes
 Depends:
     R (>= 3.3.0),
     fields,
-    abind
+    abind,
+    verification
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true

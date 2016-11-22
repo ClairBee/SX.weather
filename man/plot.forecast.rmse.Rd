@@ -4,7 +4,7 @@
 \alias{plot.forecast.rmse}
 \title{Plot RMSE}
 \usage{
-plot.forecast.rmse(model)
+\method{plot}{forecast.rmse}(model)
 }
 \arguments{
 \item{model}{Name of dataset to use (use \code{data{package = "SX.weather"}} to list available options)}

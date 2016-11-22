@@ -4,7 +4,7 @@
 \alias{plot.rmse.spread}
 \title{Plot RMSE vs spread}
 \usage{
-plot.rmse.spread(model)
+\method{plot}{rmse.spread}(model)
 }
 \arguments{
 \item{model}{Name of dataset to use (use \code{data{package = "SX.weather"}} to list available options)}
