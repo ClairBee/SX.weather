@@ -18,7 +18,7 @@ array.solve <- function(arr, solve.over) {
 #' For a superensemble of offset-corrected forecasts, return an array of covariances between perturbed ensemble members for all variables across a single model.
 #' @export
 se.covariances <- function(fc) {
-    array(apply(aperm(fc[,,,,-1], c(5,1,2,3,4)), 3:5, cov), dim = c(5,5,90,7,15))
+    array(apply(aperm(fc[,,,,-1], c(5,1,2,3,4)), 3:5, cov), dim = c(dim(fc)[[1]], dim(fc[,,,,1])))
 }
 
 

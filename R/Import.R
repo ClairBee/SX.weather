@@ -72,13 +72,14 @@ offset.forecast <- function(fc) {
 #' 
 forecast.errors <- function(fc, actual = obs) {
     
-    err <- array(dim = dim(fc[,16:105,,,]), dimnames = dimnames(fc[,16:105,,,]))
+    fc <- pad.to.5d(fc)
+    err <- pad.to.5d(array(dim = dim(fc), dimnames = dimnames(fc)))[,16:105,,,, drop = F]
     
     invisible(sapply(0:14, function(lt) {
         err[,,,toString(lt),] <<- sweep(fc[,(16:105) - lt,,toString(lt),], 1:3, actual, "-")
     }))
     
-    err
+    err <- err[,,,,,drop = T]
 }
 
 
@@ -91,8 +92,9 @@ forecast.errors <- function(fc, actual = obs) {
 #' @export
 #' 
 forecast.rmse <- function(fc, actual = obs) {
-    err <- forecast.errors(fc, actual = actual)
-    sqrt(apply(err^2, c(1, 4, 5), mean))
+    
+    err <- pad.to.5d(forecast.errors(fc, actual = actual))
+    sqrt(apply(err^2, c(1, 4, 5), mean))[,,,drop = T]
 }
 
 
@@ -116,8 +118,19 @@ superensemble <- function(data.list = list(ecmwf, ncep, ukmo)) {
 }
 
 
-
-
+#' Pad 4d array to 5d
+#' 
+#' Support function - pad an array forecast containing only one ensemble member to behave like an ensemble forecast.
+#' @param arr Array to be padded
+#' @return 5d array to be used in ensemble processing
+#' @export
+#' 
+pad.to.5d <- function(arr) {
+    if(length(dim(arr)) == 4) {
+        arr <- array(arr, dim = c(dim(arr), 1), dimnames = append(dimnames(arr), "1"))
+    }
+    return(arr)
+}
 
 
 

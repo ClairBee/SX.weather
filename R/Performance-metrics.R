@@ -33,7 +33,7 @@ model.crps <- function(Tau, S) {
     
     actual <- obs[dimnames(Tau)[[1]],,]
     
-    array(crps(c(rep(actual, dim(Tau)[[4]])),
+    array(verification::crps(c(rep(actual, dim(Tau)[[4]])),
                cbind(c(Tau),
                      sqrt(apply(S, 3:5, diag))))$crps, 
           dim = dim(Tau), dimnames = dimnames(Tau))
@@ -80,3 +80,34 @@ ensemble.crps <- function(model) {
 }
 
 
+####################################################################################################
+
+# FUNCTIONS RUNNING OVER FORECAST (NO MODEL CONSTRAINTS)                                        ####
+
+#' Forecast MAE
+#' 
+#' Median Absolute Error calculated over forecasts and observations
+#' @param fc Vector or array of forecasts to evaluate
+#' @param o Vector or array of observations. Dimensions must match those of fc
+#' @return Calculated MAE
+#' @export
+#' 
+fc.mae <- function(fc, o) {
+    mean(abs(fc - o))
+}
+
+
+#' Forecast RMSE
+#' 
+#' Root Mean Squared Error, calculated over forecasts and observations
+#' @param fc Vector or array of forecasts to evaluate
+#' @param o Vector or array of observations. Dimensions must match those of fc
+#' @return Calculated RMSE
+#' @export
+#' 
+fc.rmse <- function(fc, o) {
+    sqrt(mean((fc - o)^2))
+}
+
+
+####################################################################################################
