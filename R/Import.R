@@ -136,6 +136,24 @@ pad.to.5d <- function(arr) {
 
 
 
+#' Square matrix
+#' 
+#' Support function - re-square an array after applying eg. cov
+#' @param arr Array whose first dimension is to be rearranged into a square matrix
+#' @return Rearranged array (if possible)
+#' @export
+square.mat <- function(arr) {
+    
+    d <- dim(arr)
+    
+    if(sqrt(d[1]) %% 1 != 0) {
+        cat("Cannot produce square array.", "\n")
+        return(arr)
+    } else {
+        d1 <- sqrt(d[1])
+        return(array(arr, dim = c(d1, d1, d[-1])))
+    }
+}
 
 
 
