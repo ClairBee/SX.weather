@@ -111,3 +111,135 @@ fc.rmse <- function(fc, o) {
 
 
 ####################################################################################################
+
+# MULTIVARIATE METRICS                                                                          ####
+
+#' CRPS for multivariate-normal predictive density
+#' 
+#' CRPS (energy score) for fitted multivariate-normal predictive density.
+#' @details EITHER parameter 'efc' (for an ensemble forecast) OR parameters 'mu', 'sig' and 'k' (for a fitted univariate or multivariate normal density) must be supplied
+#' @param o Vector of observations
+#' @param mu Vector of means of fitted model
+#' @param sig Covariance matrix or variance of fitted model - NOT the standard deviation
+#' @param efc Matrix of multivariate forecasts, each column an ensemble member.
+#' @param k Number of samples to use in Monte Carlo approximation. Default is 1000.
+#' @return Energy score (multivariate CRPS)
+#' @export
+#' 
+es.crps <- function(o, mu, sig, efc, k = 1000) {
+    
+    if(!missing(efc)) {
+        
+        # ENSEMBLE FORECAST
+        
+        # if univariate, pad dimensions of ensemble
+        if(length(o) == 1) {efc <- array(efc, dim = c(1, length(efc)))}
+            
+        m <- ncol(efc)
+        
+        norm.1 <- mean(apply(efc-o, 2, function(v) sqrt(sum(v^2))))
+        norm.2 <- sum(colSums(apply(efc, 2, function(i) apply(efc-i, 2, function(v) sqrt(sum(v^2)))))) / (2 * m^2)
+    
+    } else {
+        
+        if (length(mu) == 1) {
+            
+            # UNIVARIATE NORMAL FITTED DENSITY
+            
+            x <- rnorm(k, mean = mu, sd = sqrt(sig))
+            
+            norm.1 <- mean(apply(t(x)-o, 2, function(v) sqrt(sum(v^2))))
+            norm.2 <- sum(sapply(x[1:k-1] - x[2:k], function(v) sqrt(sum(v^2)))) / (2 * (k-1))
+            
+        } else {
+            
+            # MULTIVARIATE NORMAL PREDICTIVE DENSITY
+            require(mvtnorm)            # needed to simulate from mimic
+            
+            x <- rmvnorm(k, mean = mu, sigma = sig)
+            
+            norm.1 <- mean(apply(t(x)-o, 2, function(v) sqrt(sum(v^2))))
+            norm.2 <- sum(apply(x[1:k-1,] - x[2:k,], 1, function(v) sqrt(sum(v^2)))) / (2 * (k-1))
+        }
+    }
+    norm.1 - norm.2
+}
+
+
+
+#' Verification ranks
+#' 
+#' Rank of verifying observation against an ensemble forecast
+#' @details Treats multivariate ensemble forecast as is univariate, by collapsing all dimensions except ensemble size.
+#' @param o Vector or matrix of observations
+#' @param ens Matrix of forecasts from ensemble. Last dimension gives ensemble size, all preceding dimensions must match observation dimensions.
+#' @return Ranks of observation within ensemble spread.
+#' @export
+#' 
+verif.ranks <- function(o, ens) {
+    
+    # univariate case: don't distinguish between variables
+    # collapse all dimensions into single vector (except for ensemble members)
+    
+    l <- length(dim(ens))
+    
+    apply(abind(o, ens, along = l), -l, function(v) which(sort(v) == v[1]))
+}
+
+
+
+#' Verification rank histogram
+#'
+#' Plots verification rank histogram by calling \code{\link{verif.ranks}}. Treats multivariates forecast as if univariate.
+#' @param o Vector or matrix of observations
+#' @param ens Matrix of forecasts from ensemble. Last dimension gives ensemble size, all preceding dimensions must match observation dimensions.
+#' @export
+#' 
+vr.hist <- function(o, ens, breaks = c(0:10)/10, main = "", col = "skyblue", ...) {
+    
+    m <- dim(ens)[length(dim(ens))] + 1
+    vr <- verif.ranks(o, ens)
+    hist(vr/m, breaks = breaks, col = col, main = main, xlab = "", ylab = "", prob = T, ...)
+    abline(h = 1, col = "red3", lty = 2)
+}
+
+#' Box density ordinate transform
+#' 
+#' Run Box density ordinate transform over multivariate normal model to assess calibration.
+#' @details Returns a centre-outward ordering: outliers tend to have low values, inliers tend to have high values. (Tells us nothing about direction of any bias, though)
+#' @param o Vector of observations
+#' @param mu Vector of fitted means
+#' @param s Fitted covariance matrix
+#' @return Ordinate-transformed value
+#' @export
+#' 
+box.dot <- function(o, mu, s) {
+    
+    1 - pchisq(t(o - mu) %*% solve(s) %*% (o-mu), length(mu))
+    
+}
+
+
+#' Determinant sharpness
+#' 
+#' Calculate determinant sharpness of a multivariate predictive density.
+#' @param sig Covariance matrix of fitted model
+#' @return Calculated determinant sharpness
+#' @export
+#' 
+det.sharpness <- function(sig) {
+    det(sig)^(1 / (2 * dim(sig)[1]))
+}
+
+
+#' Deviation from uniformity
+#' 
+#' Calculate deviation from uniformity of a vector of verification ranks
+#' @param vr Vector of verification ranks, as returned by \code{\link{verif.ranks}}.
+#' @param l Maximum possible rank. Default is \code{max(vr)}, but if observation is never higher than all ensemble members, this should be manually set to ensemble size + 1.
+#' @return Score evaluating degree of deviation from uniformity.
+#' @export
+#' 
+u.dev <- function(vr, l = max(vr)) {
+    sum(sapply(1:l, function(j) abs(mean(vr == j) - 1/l)))
+}

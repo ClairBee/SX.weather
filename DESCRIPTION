@@ -9,7 +9,8 @@ Depends:
     R (>= 3.3.0),
     fields,
     abind,
-    verification
+    verification,
+    mvtnorm
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
