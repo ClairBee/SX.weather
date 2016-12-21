@@ -116,7 +116,7 @@ fc.rmse <- function(fc, o) {
 
 #' CRPS for multivariate-normal predictive density
 #' 
-#' CRPS (energy score) for fitted multivariate-normal predictive density.
+#' CRPS (energy score) for a single fitted multivariate-normal predictive density or ensemble forecast.
 #' @details EITHER parameter 'efc' (for an ensemble forecast) OR parameters 'mu', 'sig' and 'k' (for a fitted univariate or multivariate normal density) must be supplied
 #' @param o Vector of observations
 #' @param mu Vector of means of fitted model
@@ -139,7 +139,6 @@ es.crps <- function(o, mu, sig, efc, k = 1000) {
         
         norm.1 <- mean(apply(efc-o, 2, function(v) sqrt(sum(v^2))))
         norm.2 <- sum(colSums(apply(efc, 2, function(i) apply(efc-i, 2, function(v) sqrt(sum(v^2)))))) / (2 * m^2)
-    
     } else {
         
         if (length(mu) == 1) {

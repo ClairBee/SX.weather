@@ -1,4 +1,40 @@
 
+#' Fit mimic to data
+#' 
+#' Fit a mimic to an ensemble forecast and training data.
+#' @param o Observed values of the variables of interest
+#' @param fc List of ensemble foreasts
+#' @param tr Matrix of training data
+#' @param arr.out Logical: return the results in a single array (T - more useful if applying formula over an array) or a list (F - useful if analysing a single forecast). Default is T.
+#' @return Either an array or a list containing computed values of Tau and S.
+#' @export
+#' 
+fit.mimic <- function(o, fc, tr, arr.out = T) {
+    
+    Y.bar <- abind(lapply(fc, apply, 1, mean), along = 0)
+    C <- abind(lapply(lapply(fc, t), cov), along = 0)
+    
+    D.i <- aaply(sweep(sweep(C, 1, sapply(fc, dim)[2,], "/"), 2:3, cov(Y.bar), "+"), 1, solve)
+    
+    Eta <- apply(t(tr), 2, mean)
+    Lambda <- cov(t(tr))
+    
+    S <- Lambda + solve(apply(D.i, 2:3, sum))
+    Tau <- (S %*% 
+                ((solve(diag(5) + (apply(D.i, 2:3, sum) %*% Lambda))) %*%
+                     apply(aaply(abind(Y.bar, D.i, along = 2), 1, 
+                                 function(arr) arr[-1,] %*% arr[1,]), 2, sum))) - Eta
+    
+    if (arr.out) {
+        # return results in array form (more useful for array operations)
+        return(abind("Tau" = Tau, S, along = 2))
+    } else {
+        # otherwise, return output as list
+        return(list(Tau = Tau, S = S))
+    }
+}
+
+
 #' Apply 'solve' over an array
 #' 
 #' Applies 'solve' to find a %*% x = b for x, over a multidimensional array, and returns the result as an array of the original dimensions.
@@ -160,3 +196,5 @@ run.model <- function(varbls = dimnames(obs)[[1]]) {
     
     return(list(tau = m.tau, s = m.s))
 }
+
+

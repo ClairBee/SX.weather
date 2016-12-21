@@ -10,7 +10,8 @@ Depends:
     fields,
     abind,
     verification,
-    mvtnorm
+    mvtnorm,
+    plyr
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true

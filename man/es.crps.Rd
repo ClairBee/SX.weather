@@ -21,7 +21,7 @@ es.crps(o, mu, sig, efc, k = 1000)
 Energy score (multivariate CRPS)
 }
 \description{
-CRPS (energy score) for fitted multivariate-normal predictive density.
+CRPS (energy score) for a single fitted multivariate-normal predictive density or ensemble forecast.
 }
 \details{
 EITHER parameter 'efc' (for an ensemble forecast) OR parameters 'mu', 'sig' and 'k' (for a fitted univariate or multivariate normal density) must be supplied
